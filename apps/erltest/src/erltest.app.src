@@ -1,0 +1,13 @@
+{application, erltest,
+ [
+  {description, "test lala"},
+  {vsn, "git"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  lager
+                 ]},
+  {mod, { erltest_app, []}},
+  {env, []}
+ ]}.

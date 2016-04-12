@@ -56,20 +56,11 @@ start_link() ->
   ignore |
   {error, Reason :: term()}).
 init([]) ->
-  RestartStrategy = one_for_one,
-  MaxRestarts = 1000,
-  MaxSecondsBetweenRestarts = 3600,
-
-  SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
-
-  Restart = permanent,
-  Shutdown = 2000,
-  Type = worker,
-
-  AChild = [{message_server, {message_server, start_link, []},
-    Restart, Shutdown, Type, [message_server]}],
-
-  {ok, {SupFlags, AChild}}.
+  {ok, {{simple_one_for_one, 10, 60},
+    [
+      {message_server, {message_server, start_link, []},
+        transient, 5000, worker, [message_server]}
+    ]}}.
 
 %%%===================================================================
 %%% Internal functions

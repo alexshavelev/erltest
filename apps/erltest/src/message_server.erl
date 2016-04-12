@@ -246,11 +246,17 @@ get_message_for_worker(Queue0, Workers) ->
 
   %% if current message is in use by another worker, but unprocessed (exists in queue)
   %% get the next one
-  case lists:keymember(Message#message.id, 1, Workers) of
-    true ->
-      get_message_for_worker(Queue, Workers);
+  if
+    is_record(Message, message) ->
+      case lists:keymember(Message#message.id, 1, Workers) of
+        true ->
+          get_message_for_worker(Queue, Workers);
 
-    _ ->
+        _ ->
+          Message
+      end;
+
+    true ->
       Message
   end.
 

@@ -34,7 +34,7 @@
 -define(SERVER, ?MODULE).
 -define(MESSAGE_LIMIT, 100).
 
--record(state, {state :: atom(), queue :: queue(), workers :: list(), limit :: integer()}).
+-record(state, {state :: atom(), queue :: queue, workers :: list(), limit :: integer()}).
 
 %%%===================================================================
 %%% API
@@ -182,7 +182,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 
 %% send message to queue
--spec send_message(record()) -> ok.
+-spec send_message(record) -> ok.
 send_message(Message) when is_record(Message, message) ->
   gen_server:call(?MODULE, block),
   ok = gen_server:call(?MODULE, {new_message, Message});
@@ -191,7 +191,7 @@ send_message(Message) ->
   lager:error("invalid message ~p~n", [Message]).
 
 %% delete message from queue e.g. confirm process
--spec delete_message(record()) -> ok.
+-spec delete_message(record) -> ok.
 delete_message(Message) ->
   gen_server:call(?MODULE, block),
   %% TODO think about if need we to block? (cause message already presents in gen_server state)
@@ -208,7 +208,7 @@ get_message() -> %% TODO think about if need we to block?
 %%%===================================================================
 
 %% add new worker to gen_server state
--spec add_new_worker(list(), pid(), record() | tuple) -> list().
+-spec add_new_worker(list(), pid(), record | tuple) -> list().
 add_new_worker(Workers, WorkerPid, #message{id = MessageId}) ->
   [{MessageId, WorkerPid} | Workers];
 
@@ -217,7 +217,7 @@ add_new_worker(Workers, _WorkerPid, {error, empty_queue}) ->
 
 %% add new element in the queue.
 %% if limit reached we delete 1 replace 1st queue element with given
--spec add_message_to_queue(queue(), record(), integer()) -> queue().
+-spec add_message_to_queue(queue, record, integer()) -> queue.
 add_message_to_queue(Queue0, Message, Limit) ->
   QueueLen = queue:len(Queue0),
 
@@ -227,11 +227,11 @@ add_message_to_queue(Queue0, Message, Limit) ->
       queue:in_r(Message, Queue);
 
     true ->
-      queue:in(Message, Queue)
+      queue:in(Message, Queue0)
   end.
 
 %% get message from queue which isn't in usage by any worker
--spec get_message_for_worker(queue(), list()) -> record().
+-spec get_message_for_worker(queue, list()) -> record.
 get_message_for_worker(Queue0, Workers) ->
 
   {Message, Queue} =
@@ -255,13 +255,13 @@ get_message_for_worker(Queue0, Workers) ->
   end.
 
 %% when message is processed we need to delete it from queue
--spec delete_message_from_queue(queue(), record()) -> queue().
+-spec delete_message_from_queue(queue, record) -> queue.
 delete_message_from_queue(Queue, Message) ->
   F = fun(MessageFromQueue) -> Message =/= MessageFromQueue end,
   queue:filter(F, Queue).
 
 %% when message is processed we need to delete worker from gen_server state
--spec delete_worker(list(), record()) -> list().
+-spec delete_worker(list(), record) -> list().
 delete_worker(Workers, #message{id = MessageId}) ->
   lists:keydelete(MessageId, 1, Workers).
 

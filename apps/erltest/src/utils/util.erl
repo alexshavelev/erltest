@@ -9,51 +9,25 @@
 -module(util).
 -author("alex_shavelev").
 
+-include("settings.hrl").
+
 -define(JSX, jsx).
 -define(JIFFY, jiffy).
 
 %% API
 -export([
-  from_json/1,
-  to_json/1
+  get_random_id/0,
+  to_binary/1
 ]).
 
+-spec get_random_id() -> integer().
+get_random_id() ->
+  {Mega, Secs, MicroSecs} = erlang:now(),
+  Timestamp = Mega*1000000 + Secs + MicroSecs,
+  Timestamp.
 
-from_json(JSON) ->
-  from_json(?JIFFY, JSON).
-
-from_json(?JIFFY, JSON) ->
-  try
-    jiffy:decode(JSON)
-  catch
-    _Class:_Error ->
-      error
-  end;
-
-from_json(?JSX, JSON) ->
-  try
-    jsx:decode(JSON)
-  catch
-    _Class:_Error  ->
-      error
-  end.
-
-to_json(Content) ->
-  to_json(?JIFFY, Content).
-
-to_json(?JIFFY, Content) ->
-  try
-    jiffy:encode(Content)
-  catch
-    _Class:_Error  ->
-      error
-  end;
-
-to_json(?JSX, Content) ->
-  try
-    jsx:encode(Content)
-  catch
-    _Class:_Error->
-      error
-  end.
+to_binary( Value ) when ?IsB( Value ) -> Value;
+to_binary( Value ) when ?IsI( Value ) -> ?I2B( Value );
+to_binary( Value ) when ?IsL( Value ) -> ?L2B( Value );
+to_binary( Value ) when ?IsA( Value ) -> ?A2B( Value ).
 

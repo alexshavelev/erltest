@@ -93,7 +93,7 @@ handle_call(block, _From, State) ->
 
 handle_call({new_message, Message}, _From, #state{queue = Queue0, limit = MessageLimit}=State) ->
   Queue = add_message_to_queue(Queue0, Message, MessageLimit),
-  {reply, ok, State#state{state = ready, queue = queue:in(Message, Queue)}};
+  {reply, ok, State#state{state = ready, queue = Queue}};
 
 handle_call(get_message, _From, #state{state = blocked}=State) ->
   {reply, {error, blocked}, State};
@@ -102,7 +102,7 @@ handle_call(get_message, {WorkerPid, _}, #state{queue = Queue, workers = Workers
 
   Message = get_message_for_worker(Queue, Workers0),
   Workers = add_new_worker(Workers0, WorkerPid, Message),
-  {reply, Message, State#state{workers = Workers, queue = Queue}};
+  {reply, Message, State#state{workers = Workers, queue = Queue, state = ready}};
 
 handle_call(_Request, _From, State) ->
   {reply, ok, State}.
@@ -122,8 +122,8 @@ handle_call(_Request, _From, State) ->
 handle_cast({delete_message, Message}, #state{queue = Queue0, workers = Workers0}=State) ->
 
   Queue = delete_message_from_queue(Queue0, Message),
-  Workers0 = delete_worker(Workers0, Message),
-  {noreply, State#state{queue = Queue, state = ready}};
+  Workers = delete_worker(Workers0, Message),
+  {noreply, State#state{queue = Queue, state = ready, workers = Workers}};
 
 handle_cast(_Request, State) ->
   {noreply, State}.
@@ -184,8 +184,7 @@ code_change(_OldVsn, State, _Extra) ->
 %% send message to queue
 -spec send_message(Message :: #message{}) -> ok.
 send_message(Message) when is_record(Message, message) ->
-  gen_server:call(?MODULE, block),
-  ok = gen_server:call(?MODULE, {new_message, Message});
+  gen_server:call(?MODULE, {new_message, Message});
 
 send_message(Message) ->
   lager:error("invalid message ~p~n", [Message]).
@@ -193,13 +192,11 @@ send_message(Message) ->
 %% delete message from queue e.g. confirm process
 -spec delete_message(Message :: #message{}) -> ok.
 delete_message(Message) ->
-  gen_server:call(?MODULE, block),
-  %% TODO think about if need we to block? (cause message already presents in gen_server state)
   gen_server:cast(?MODULE, {delete_message, Message}).
 
 %% get message from queue
 -spec get_message() -> Message :: #message{} | tuple.
-get_message() -> %% TODO think about if need we to block?
+get_message() ->
   gen_server:call(?MODULE, get_message).
 
 
@@ -222,7 +219,7 @@ add_message_to_queue(Queue0, Message, Limit) ->
   QueueLen = queue:len(Queue0),
 
   if
-    Limit < QueueLen ->
+    QueueLen >= Limit  ->
       {_, Queue} = queue:out(Queue0),
       queue:in_r(Message, Queue);
 

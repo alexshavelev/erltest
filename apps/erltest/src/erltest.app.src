@@ -3,10 +3,12 @@
   {description, "test lala"},
   {vsn, "git"},
   {registered, []},
+  {modules, [erltest_app]},
   {applications, [
                   kernel,
                   stdlib,
-                  lager
+                  lager,
+                  inets
                  ]},
   {mod, { erltest_app, []}},
   {env, []}

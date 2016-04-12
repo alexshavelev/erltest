@@ -4,9 +4,9 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created : 12. Apr 2016 16:18
+%%% Created : 12. Apr 2016 18:27
 %%%-------------------------------------------------------------------
--module(message_server_sup).
+-module(writer_sup).
 -author("alex_shavelev").
 
 -behaviour(supervisor).
@@ -58,8 +58,8 @@ start_link() ->
 init([]) ->
   {ok, {{one_for_one, 10, 60},
     [
-      {message_server, {message_server, start_link, []},
-        temporary, 5000, worker, [message_server]}
+      {writer, {writer, start_link, []},
+        transient, 5000, worker, [writer]}
     ]}}.
 
 

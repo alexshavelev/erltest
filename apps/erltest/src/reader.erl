@@ -35,7 +35,7 @@ worker() ->
     #message{id = MessageId, text = TextMessage} = Message ->
       io:format("Message: id ~p text ~p~n", [MessageId, TextMessage]),
       message_server:delete_message(Message),
-      timer:apply_after(?TIME, ?MODULE, worker, [])
+      apply(?MODULE, worker, [])
   end.
 
 

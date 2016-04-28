@@ -27,4 +27,4 @@ start_link() ->
 worker() ->
   Message = #message{id = util:get_random_id(), text = <<"some test text">>},
   message_server:send_message(Message),
-  timer:apply_after(?TIME, ?MODULE, worker, []).
+  apply(?MODULE, worker, []).

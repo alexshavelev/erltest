@@ -10,7 +10,37 @@
 -author("alex_shavelev").
 
 %% API
--export([test/0, test/1]).
+-export([test/0, test/1, t/0]).
+
+t() ->
+%%  Dispatch = cowboy_router:compile([{'_', [
+%%
+%%
+%%
+%%
+%%    % site router
+%%    {"/[...]", http_site_handler, []}
+%%  ]}]),
+%%
+%%  ProtoOpts = [
+%%    {env, [{dispatch, Dispatch}]},
+%%    {max_keepalive, 15000}
+%%  ],
+%%  TransOpts = [{max_connections, 100000}],
+%%
+%%  Acceptors   = 100,
+
+  Dispatch = cowboy_router:compile([
+    {'_', [{"/", hello_hanler, []}]}
+  ]),
+
+  Port = 8000,
+  {ok, _HttpPid} =
+    cowboy:start_http(my_http_listener, 100, [{port, 8080}],
+      [{env, [{dispatch, Dispatch}]}]
+    ),
+  lager:info("HTTP listener started on port ~p", [Port]).
+
 
 test(Path) ->
   Path1 = " \"" ++ binary_to_list(Path) ++ "\"",

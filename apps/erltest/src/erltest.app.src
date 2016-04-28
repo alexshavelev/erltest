@@ -8,7 +8,10 @@
                   kernel,
                   stdlib,
                   lager,
-                  inets
+                  inets,
+                  cowboy,
+                  loom,
+                  icontrol
                  ]},
   {mod, { erltest_app, []}},
   {env, []}

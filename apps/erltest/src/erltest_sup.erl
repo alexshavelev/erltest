@@ -26,7 +26,7 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    {ok, { {one_for_one, 5, 10}, [?SUP(message_server_sup), ?SUP(reader_sup), ?SUP(writer_sup)]} }.
-
+%%    {ok, { {one_for_one, 5, 10}, [?SUP(message_server_sup), ?SUP(reader_sup), ?SUP(writer_sup)]} }.
+    {ok, { {one_for_one, 5, 10}, []} }.
 
 
